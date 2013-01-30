@@ -1,9 +1,15 @@
 socket=require"socket"
+dofile"pipecmd.lua"
 pipe={}
 function startpipeserv(port)
 	pipe.port=port
-	local c=socket.tcp()
-	assert(c:bind("*",port))
+	local c
+	local succ,err
+	while not succ do
+		c=socket.tcp()
+		succ,err=c:bind("*",port)
+		print(err)
+	end
 	c:listen(2)
 	c:settimeout(0)
 	pipe.socket=c
@@ -12,17 +18,18 @@ function checkpipe()
 	if pipe.socket then
 		local client,err=pipe.socket:accept()
 		if client then
-			client:settimeout(100)
-			local s=client:receive"*l"
-			print"pipe:"
-			if s then
-				print(s)
-				local func=loadstring(s)
-				if func then
-					pcall(func)
+			client:settimeout(1)
+			local command=client:receive"*l"
+			if command then
+				command=command:lower()
+				print(("Pipe: %s"):format(command))
+				if pipecmd[command] then
+					pcall(pipecmd[command],command,client)
 				end
 			end
 			client:close()
+		elseif err~="timeout" then
+			print(("Pipe: %s"):format(err))
 		end
 	end
 end
