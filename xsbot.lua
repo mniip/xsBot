@@ -1,9 +1,4 @@
 socket=require"socket"
-json=require"json"
-servers={}
-dofile"misc.lua"
-dofile"commands.lua"
-dofile"handlers.lua"
 function send(network,...)
 	local t={...}
 	local s=tostring(t[1])
@@ -62,6 +57,7 @@ function loop(sleep)
 				end
 			end
 		end
+		checkpipe()
 		socket.sleep(sleep)
 	end
 end
