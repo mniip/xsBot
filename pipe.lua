@@ -7,7 +7,7 @@ function startpipeserv(port)
 	local succ,err
 	while not succ do
 		c=socket.tcp()
-		succ,err=c:bind("*",port)
+		succ,err=c:bind("localhost",port)
 		print(err)
 	end
 	c:listen(2)
