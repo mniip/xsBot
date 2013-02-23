@@ -35,7 +35,9 @@ function on.privmsg(network,sender,_,recipient,text)
 			if allowed(network,recipient,sender,command) then
 				local succ,ret=pcall(commands[command],{params=param,network=network,channel=recipient,sender=sender,nick=splitnick(sender),command=command},unpack(args))
 				if succ then
-					send(network,"PRIVMSG",recipient,("%s: %s"):format(splitnick(sender),tostring(ret or "Result empty"):gsub("%s+"," ")))
+					if ret then
+						send(network,"PRIVMSG",recipient,("%s: %s"):format(splitnick(sender),tostring(ret):gsub("%s+"," ")))
+					end
 				else
 					send(network,"PRIVMSG",recipient,("%s: [%s]: %s"):format(splitnick(sender),text,ret))
 				end

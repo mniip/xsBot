@@ -61,4 +61,9 @@ function commands.list(query)
 	end
 	return table.concat(t,", ")
 end
-
+function commands.ping()
+	return ({"Could not resolve host","Timeout exceeded the limit"})[math.random(1,2)]
+end
+function commands.echo(query)
+	send(query.network,"PRIVMSG",query.channel,"\15"..query.params)
+end

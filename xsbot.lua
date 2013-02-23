@@ -40,10 +40,16 @@ function disconnect(network)
 		servers[network]=nil
 	end
 end
+events={}
 function loop(func)
 	loop_level=loop_level+1
 	local l=loop_level
 	while loop_level==l do
+		for i=#events,1,-1 do
+			if not select(2,pcall,events[i]) then
+				table.remove(events,i)
+			end
+		end
 		for k,v in pairs(servers) do
 			local c=v.socket
 			local s,err=c:receive"*l"
