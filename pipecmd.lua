@@ -52,3 +52,9 @@ function pipecmd.stat(_,client)
 		end
 	end
 end
+function pipecmd.git(_,client)
+	local data=client:receive"*a"
+	local json=require"json"
+	local commit=json.decode(data).head_commit
+	send("freenode","PRIVMSG","#powder-bots",("Git commit by %s: %s [*%s][+%s][-%s]"):format(commit.author.name,commit.message,table.concat(commit.modified,"][*"),table.concat(commit.added,"][+"),table.concat(commit.removed,"][-")))
+end
