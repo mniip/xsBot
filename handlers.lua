@@ -1,4 +1,7 @@
 on={}
+function on.error(network)
+	server[network].socket:close()
+end
 function on.nick(network,sender,_,nick)
 	if lower(splitnick(sender))==lower(servers[network].nick) then
 		servers[network].nick=nick
