@@ -12,7 +12,7 @@ function send(network,...)
 	end
 	log(network.."> "..s)
 	s=s.."\n"
-	servers[network].socket:send(s)
+	servers[network].socket:send(s:sub(1,512))
 end
 function log(s)
 	print(s)
