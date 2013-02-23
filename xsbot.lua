@@ -17,7 +17,8 @@ end
 function log(s)
 	print(s)
 end
-function connect(network,address,port)
+function connect(network)
+	local address,port=config.servers[network].server,config.servers[network].port
 	if not servers[network] then
 		if network=="default" then
 			log"connect: ignoring default server"
@@ -39,27 +40,33 @@ function disconnect(network)
 		servers[network]=nil
 	end
 end
-function loop(sleep)
-	while 1 do
+function loop(func)
+	loop_level=loop_level+1
+	local l=loop_level
+	while loop_level==l do
 		for k,v in pairs(servers) do
 			local c=v.socket
 			local s,err=c:receive"*l"
 			if err then
 					if err~="timeout" then
-					local address,port=v.address,v.port
 					disconnect(c)
-					connect(k,address,port)
+					connect(k)
 				end
 			else
-				local succ,err=pcall(handle,k,s)
+				local succ,err=pcall(handle,k,s,func)
 				if not succ then
 					log(err)
+				end
+				if err==false then
+					loop_level=l-1
+					return
 				end
 			end
 		end
 		checkpipe()
-		socket.sleep(sleep)
+		socket.sleep(config.sleep)
 	end
+	loop_level=l-1
 end
 function parse(s)
 	local t={}
@@ -77,9 +84,14 @@ function parse(s)
 	end
 	return t
 end
-function handle(network,s)
-	log(network.."> "..s)
+function handle(network,s,func)
 	local t=parse(s)
+	local _,r=pcall(func,network,s,unpack(t))
+	if r==false then
+		return false
+	elseif r==nil then
+		log(network.."> "..s)
+	end
 	if servers[network].nick then
 		if on[t[1]:lower()] then
 			local succ,err=pcall(on[t[1]:lower()],network,t[0],unpack(t))

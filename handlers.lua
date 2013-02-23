@@ -13,7 +13,7 @@ function on.privmsg(network,sender,_,recipient,text)
 	end
 	if text:match("^"..config.char) then
 		local code=text:match("^"..config.char.."(.*)")
-		local command,params=code:match"^(%S+)%s*(.-)%s*$"
+		local command,params=code:match"^(%S*)%s*(.-)%s*$"
 		local param=params
 		local args={}
 		while #params>0 do
@@ -32,7 +32,7 @@ function on.privmsg(network,sender,_,recipient,text)
 			if allowed(network,recipient,sender,command) then
 				local succ,ret=pcall(commands[command],{params=param,network=network,channel=recipient,sender=sender,nick=splitnick(sender),command=command},unpack(args))
 				if succ then
-					send(network,"PRIVMSG",recipient,("%s: %s"):format(splitnick(sender),tostring(ret or "Result empty")))
+					send(network,"PRIVMSG",recipient,("%s: %s"):format(splitnick(sender),tostring(ret or "Result empty"):gsub("%s+"," ")))
 				else
 					send(network,"PRIVMSG",recipient,("%s: [%s]: %s"):format(splitnick(sender),text,ret))
 				end
@@ -41,6 +41,16 @@ function on.privmsg(network,sender,_,recipient,text)
 			end
 		else
 			send(network,"PRIVMSG",recipient,"No such command")
+		end
+	end
+	if text:match"^~%d" then
+		local id=text:match"^~(%d+)"
+		local data=http("powdertoy.co.uk/Browse/View.json?ID="..id)
+		if data then
+			local j=json.decode(data:match"{.*$")
+			send(network,"PRIVMSG",recipient,("Save %d is \"%s\" by %s; published on %s; has %d-%d=%d votes; http://tpt.io/~%d"):format(j.ID,j.Name,j.Username,os.date("%d.%m.%Y at %H:%M:%S",j.Date),j.ScoreUp,j.ScoreDown,j.Score,j.ID))
+		else
+			send(network,"PRIVMSG",recipient,"Save doesnt exist")
 		end
 	end
 end

@@ -12,6 +12,7 @@ function commands.load(query)
 	end
 end
 function commands.reboot(query)
+	stoppipeserv()
 	local p=io.open"/proc/self/stat":read"*a":match"%d+"
 	local s,m="",1
 	while arg[m-1] do m=m-1 end
@@ -38,3 +39,26 @@ commands["%"]=function(query)
 		error(err,2)
 	end
 end
+commands[""]=function(query)
+	local f=io.open(".tmp","w")
+	f:write(query.params)
+	f:close()
+	local sh=io.popen"ulimit -v 10000;ulimit -t 5;systrace -t lua .tmp 2>&1"
+	local s=sh and sh:read"*a" or ""
+	return s:gsub("\n"," | ")
+end
+function commands.dns(query)
+	return socket.dns.toip(query.params) or "idfk"
+end
+function commands.list(query)
+	local t={}
+	for k in pairs(commands) do
+		local s='"'..k..'"'
+		if allowed(query.network,query.channel,query.sender,k) then
+			s="\31"..s.."\31"
+		end
+		table.insert(t,s)
+	end
+	return table.concat(t,", ")
+end
+
