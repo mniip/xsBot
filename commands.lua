@@ -39,7 +39,7 @@ commands["%"]=function(query)
 		error(err,2)
 	end
 end
-commands[""]=function(query)
+function commands.lua(query)
 	local f=io.open(".tmp","w")
 	f:write(query.params)
 	f:close()
@@ -66,4 +66,28 @@ function commands.ping()
 end
 function commands.echo(query)
 	send(query.network,"PRIVMSG",query.channel,"\15"..query.params)
+end
+function commands.remind(query,time,message)
+	checktype({"number","string"},{time,message})
+	if tonumber(time)>3600 then
+		return "I doubt i will remember it by then..."
+	end
+	local finish=os.time()+time
+	table.insert(events,function()
+		if os.time()>finish then
+			send(query.network,"PRIVMSG",query.channel,query.nick..": "..message)
+			return true
+		end
+	end)
+end
+function commands.help(query,func)
+	if not func then
+		return "Usage: help <function>"
+	end
+	for line in io.lines"help.txt" do
+		if line:sub(1,#func+1):lower()==func:lower().."\t" then
+			return ("Usage: \2%s %s\2 | %s"):format(line:match"^([^\t]*)\t([^\t]*)\t(.*)$")
+		end
+	end
+	return "Nothing useful found"
 end

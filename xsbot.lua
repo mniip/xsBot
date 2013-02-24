@@ -46,7 +46,7 @@ function loop(func)
 	local l=loop_level
 	while loop_level==l do
 		for i=#events,1,-1 do
-			if not select(2,pcall,events[i]) then
+			if select(2,pcall(events[i])) then
 				table.remove(events,i)
 			end
 		end

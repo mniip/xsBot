@@ -63,3 +63,16 @@ function whois(network,nick)
 	end)
 	return hostname
 end
+function checktype(types,values)
+	for i,v in ipairs(types) do
+		if values[i]==nil then
+			error("a "..v.." expected!")
+		elseif v=="number" then
+			if not tonumber(values[i]) then
+				error('"'..tostring(values[i])..'" doesnt look like a number to me')
+			end
+		elseif type(values[i])~=v then
+			error("a "..v.." expected, got "..type(values[i]))
+		end
+	end
+end
