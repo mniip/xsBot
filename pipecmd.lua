@@ -58,4 +58,26 @@ function pipecmd.git(_,client)
 	for _,commit in ipairs(json.decode(data).commits) do
 		send("freenode","PRIVMSG","#powder-bots",("Git commit by %s (%s pushed): %s [*%s][+%s][-%s]"):format(commit.author.name,commit.committer.name,commit.message,table.concat(commit.modified,"][*"),table.concat(commit.added,"][+"),table.concat(commit.removed,"][-")))
 	end
+	local oldtime={}
+	for file,time in io.popen"stat -c %n:%Y *":read"*a":gmatch"(^[^:]*):(.*)$" do
+		oldtime[file]=time
+	end
+	os.execute"git fetch origin -q && git merge origin/master -q"
+	local files={}
+	for file,time in io.popen"stat -c %n:%Y *":read"*a":gmatch"(^[^:]*):(.*)$" do
+		if time>oldtime[file]or 0 then
+			files[file]=true
+		end
+	end
+	if files["init.lua"] then
+		commands.reboot()
+	end
+	for k in pairs(files) do
+		if k:match"%.lua$" then
+			commands.load(k:match"^(.*)%.lua$")
+		end
+	end
+	if files["xsbot.lua"] then
+		_break()
+	end
 end
