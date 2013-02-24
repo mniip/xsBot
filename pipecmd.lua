@@ -55,6 +55,7 @@ end
 function pipecmd.git(_,client)
 	local data=client:receive"*a"
 	local json=require"json"
-	local commit=json.decode(data).head_commit
-	send("freenode","PRIVMSG","#powder-bots",("Git commit by %s: %s [*%s][+%s][-%s]"):format(commit.author.name,commit.message,table.concat(commit.modified,"][*"),table.concat(commit.added,"][+"),table.concat(commit.removed,"][-")))
+	for _,commit in ipairs(json.decode(data).commits) do
+		send("freenode","PRIVMSG","#powder-bots",("Git commit by %s (%s pushed): %s [*%s][+%s][-%s]"):format(commit.author.name,commit.committer.name,commit.message,table.concat(commit.modified,"][*"),table.concat(commit.added,"][+"),table.concat(commit.removed,"][-")))
+	end
 end
