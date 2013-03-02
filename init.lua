@@ -1,9 +1,10 @@
 #!/usr/bin/lua
 json=require"json"
 require"include"
+servers={}
+unload_mod={}
 include"config.lua"
 include"pipe.lua"
-servers={}
 include"misc.lua"
 include"commands.lua"
 include"handlers.lua"

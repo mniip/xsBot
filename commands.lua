@@ -1,8 +1,8 @@
 commands={}
-function commands.load(query)
-	local file=query.params
-	if not query.params:find"%.[^/]+$" then
-		file=query.params..".lua"
+function commands.load(query,file)
+	checktype({"string"},{file})
+	if not file:find"%.[^/]+$" then
+		file=file..".lua"
 	end
 	local succ,err=pcall(dofile,file)
 	if succ then
@@ -82,4 +82,24 @@ function commands.help(query,func)
 		end
 	end
 	return "Nothing useful found"
+end
+function commands.insmod(query,file)
+	checktype({"string"},{file})
+	assert(not unload_mod[file],"Module "..file.." already loaded")
+	local func=assert(loadfile("plugins/"..file..".lua"))
+	local loader
+	loader,unload_mod[file]=f()
+	loader()
+	return "Module "..file.." loaded"
+end
+function commands.rmmod(query,file)
+	checktype({"string"},{file})
+	assert(unload_mod[file],"Module "..file.." wasn't loaded")
+	unload_mod[file]()
+	unload_mod[file]=nil
+	return "Module "..file.." unloaded"
+end
+function commands.calc(query)
+	local succ,ret=pcall(assert(loadstring("return "..query.params),"Syntax error"))
+	return succ and ret or error"Syntax error"
 end

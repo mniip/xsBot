@@ -76,8 +76,36 @@ function checktype(types,values)
 		end
 	end
 end
-function fappend(f1,f2)
-	local f=function(...)f1(...)f2(...)end
-	debug.setmetatable(f,{f1,f2})
-	return f
+do
+	local l=setmetatable({},{__mode='k'})
+	function fappend(f1,f2)
+		local f=function(...)f1(...)f2(...)end
+		l[f]={f1,f2}
+		return f
+	end
+	function fdivide(p,f)
+		local function fd(p,f)
+			if p==f then
+				return
+			end
+			local m=l[p]
+			if m then
+				local nf1=fd(m[1],f)
+				local nf2=fd(m[2],f)
+				if nf1 then
+					if nf2 then
+						return fappend(nf1,nf2)
+					else
+						return nf1
+					end
+				else
+					return nf2
+				end
+			else
+				return p
+			end
+		end
+		return fd(p,f)or function()end
+	end
 end
+
