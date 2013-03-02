@@ -56,7 +56,9 @@ function pipecmd.git(_,client)
 	local data=client:receive"*a"
 	local json=require"json"
 	for _,commit in ipairs(json.decode(data).commits) do
-		send("freenode","PRIVMSG","#powder-bots",("Git commit by %s (%s pushed): %s [*%s][+%s][-%s]"):format(commit.author.name,commit.committer.name,commit.message,table.concat(commit.modified,"][*"),table.concat(commit.added,"][+"),table.concat(commit.removed,"][-")))
+		for _,channel in ipairs(config.git.channels) do
+			send(channel[1],"PRIVMSG",channel[2],("Git commit by %s (%s pushed): %s [*%s][+%s][-%s]"):format(commit.author.name,commit.committer.name,commit.message,table.concat(commit.modified,"][*"),table.concat(commit.added,"][+"),table.concat(commit.removed,"][-")))
+		end
 	end
 	local oldtime={}
 	for file,time in io.popen"stat -c %n:%Y *":read"*a":gmatch"(^[^:]*):(.*)$" do
@@ -70,14 +72,17 @@ function pipecmd.git(_,client)
 		end
 	end
 	if files["init.lua"] then
+		log"init changed: rebooting"
 		commands.reboot()
 	end
 	for k in pairs(files) do
 		if k:match"%.lua$" then
+			log(k.." changed: reloading")
 			commands.load(k:match"^(.*)%.lua$")
 		end
 	end
 	if files["xsbot.lua"] then
+		log"loop possibly changed: breaking"
 		_break()
 	end
 end
