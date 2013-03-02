@@ -40,7 +40,7 @@ commands["%"]=function(query)
 	end
 end
 function commands.dns(query)
-	return socket.dns.toip(query.params) or "idfk"
+	return query.params:match"%d+%.%d+%.%d+%.%d+"and socket.dns.tohostname(query.params)or socket.dns.toip(query.params) or "idfk"
 end
 function commands.list(query)
 	local t={}

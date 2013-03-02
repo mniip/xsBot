@@ -57,14 +57,4 @@ function on.privmsg(network,sender,_,recipient,text)
 			send(network,"PRIVMSG",recipient,"No such command")
 		end
 	end
-	if text:match"^~%d" then
-		local id=text:match"^~(%d+)"
-		local data=http("powdertoy.co.uk/Browse/View.json?ID="..id)
-		if data then
-			local j=json.decode(data:match"{.*$")
-			send(network,"PRIVMSG",recipient,("Save %d is \"%s\" by %s; published on %s; has %d-%d=%d votes; http://tpt.io/~%d"):format(j.ID,j.Name,j.Username,os.date("%d.%m.%Y at %H:%M:%S",j.Date),j.ScoreUp,j.ScoreDown,j.Score,j.ID))
-		else
-			send(network,"PRIVMSG",recipient,"Save doesnt exist")
-		end
-	end
 end
