@@ -39,14 +39,6 @@ commands["%"]=function(query)
 		error(err,2)
 	end
 end
-function commands.lua(query)
-	local f=io.open(".tmp","w")
-	f:write(query.params)
-	f:close()
-	local sh=io.popen"ulimit -v 10000;ulimit -t 5;systrace -t lua .tmp 2>&1"
-	local s=sh and sh:read"*a" or ""
-	return s:gsub("\n"," | ")
-end
 function commands.dns(query)
 	return socket.dns.toip(query.params) or "idfk"
 end

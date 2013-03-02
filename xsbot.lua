@@ -108,12 +108,6 @@ function handle(network,s,func)
 	else
 		send(network,"USER",config.servers[network].ident,"*","*","xsBot")
 		send(network,"NICK",config.servers[network].nick)
-		for channel in pairs(config.servers[network].channels) do
-			send(network,"JOIN",channel)
-		end
-		for _,command in pairs(config.servers[network].autorun) do
-			send(network,command)
-		end
 		servers[network].nick=config.servers[network].nick
 	end
 end

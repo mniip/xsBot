@@ -1,4 +1,13 @@
 on={}
+on["001"]=function(network)
+	for _,command in pairs(config.servers[network].autorun) do
+		send(network,command)
+	end
+	for channel in pairs(config.servers[network].channels) do
+		send(network,"JOIN",channel)
+	end
+end
+
 function on.error(network)
 	server[network].socket:close()
 end

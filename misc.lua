@@ -76,3 +76,8 @@ function checktype(types,values)
 		end
 	end
 end
+function fappend(f1,f2)
+	local f=function(...)f1(...)f2(...)end
+	debug.setmetatable(f,{f1,f2})
+	return f
+end

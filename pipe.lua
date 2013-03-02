@@ -1,5 +1,5 @@
 socket=require"socket"
-dofile"pipecmd.lua"
+include"pipecmd.lua"
 pipe={}
 function startpipeserv(port)
 	pipe.port=port
