@@ -76,6 +76,9 @@ function checktype(types,values)
 		end
 	end
 end
+function nstime()
+	return tonumber(assert(io.popen"date +%s.%N"):read"*a")
+end
 do
 	local l=setmetatable({},{__mode='k'})
 	function fappend(f1,f2)
@@ -107,5 +110,18 @@ do
 		end
 		return fd(p,f)or function()end
 	end
+	local last_used={}
+	local function timedsend(network,channel,text)
+		last_used[network]=last_used[network]or nstime()-1
+		while last_used[network]>nstime()-0.33 do
+			socket.sleep(0.11)
+		end
+		send(network,"PRIVMSG",channel,text)
+		last_used[network]=nstime()
+	end
+	function privmsg(network,channel,text)
+		for i=1,#text,400 do
+			timedsend(network,channel,text:sub(i,i+399))
+		end
+	end
 end
-

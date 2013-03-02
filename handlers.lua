@@ -45,16 +45,16 @@ function on.privmsg(network,sender,_,recipient,text)
 				local succ,ret=pcall(commands[command],{params=param,network=network,channel=recipient,sender=sender,nick=splitnick(sender),command=command},unpack(args))
 				if succ then
 					if ret then
-						send(network,"PRIVMSG",recipient,("%s: %s"):format(splitnick(sender),tostring(ret):gsub("%s+"," ")))
+						privmsg(network,recipient,("%s: %s"):format(splitnick(sender),tostring(ret):gsub("%s+"," ")))
 					end
 				else
-					send(network,"PRIVMSG",recipient,("%s: [%s]: %s"):format(splitnick(sender),text,ret))
+					privmsg(network,recipient,("%s: [%s]: %s"):format(splitnick(sender),text,ret))
 				end
 			else
-				send(network,"PRIVMSG",recipient,"Permission denied")
+				privmsg(network,recipient,"Permission denied")
 			end
 		else
-			send(network,"PRIVMSG",recipient,"No such command")
+			privmsg(network,recipient,"No such command")
 		end
 	end
 end

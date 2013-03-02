@@ -1,7 +1,7 @@
 local function check(network,sender,_,recipient,text)
 	if text:match"^~%d" then
 		local id=text:match"^~(%d+)"
-		send(network,"PRIVMSG",recipient,commands.ptsave(nil,id))
+		privmsg(network,recipient,commands.ptsave(nil,id))
 	end
 end
 local function load()

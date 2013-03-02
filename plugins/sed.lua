@@ -4,7 +4,7 @@ local function check(network,sender,_,recipient,text)
 	if sed_data[recipient] and sed_data[recipient][splitnick(sender)] then
 		search,replace=text:match"^s/([^/]*)/([^/]*)/$"
 		if search then
-			send(network,"PRIVMSG",recipient,"<"..splitnick(sender).."> "..sed_data[recipient][splitnick(sender)]:gsub(search,replace))
+			privmsg(network,recipient,"<"..splitnick(sender).."> "..sed_data[recipient][splitnick(sender)]:gsub(search,replace))
 		end
 	end
 	if not search then
