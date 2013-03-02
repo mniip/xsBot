@@ -39,8 +39,23 @@ commands["%"]=function(query)
 		error(err,2)
 	end
 end
-function commands.dns(query)
-	return query.params:match"%d+%.%d+%.%d+%.%d+"and socket.dns.tohostname(query.params)or socket.dns.toip(query.params) or "idfk"
+function commands.dns(query,address,verbose)
+	checktype({"string"},{address})
+	if address:match"%d+%.%d+%.%d+%.%d+" then
+		if verbose=="verbose" then
+			local data=assert(io.popen("host '"..address:gsub("[\\']","\\%1").."'")):read"*a"or""
+			return data:gsub("%S+ domain name pointer ",address.." PTR "):gsub("\n"," || ")
+		else
+			return socket.dns.tohostname(query.params) or "error"
+		end
+	else
+		if verbose=="verbose" then
+			local data=assert(io.popen("host '"..address:gsub("[\\']","\\%1").."'")):read"*a"or""
+			return data:gsub(" has address "," A "):gsub(" has IPv6 address "," AAAA "):gsub(" is an alias for "," CNAME "):gsub(" mail is handled by "," MX "):gsub("\n"," || ")
+		else
+			return socket.dns.toip(query.params) or "error"
+		end
+	end
 end
 function commands.list(query)
 	local t={}
