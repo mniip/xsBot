@@ -88,7 +88,7 @@ function commands.insmod(query,file)
 	assert(not unload_mod[file],"Module "..file.." already loaded")
 	local func=assert(loadfile("plugins/"..file..".lua"))
 	local loader
-	loader,unload_mod[file]=f()
+	loader,unload_mod[file]=func()
 	loader()
 	return "Module "..file.." loaded"
 end
@@ -98,6 +98,9 @@ function commands.rmmod(query,file)
 	unload_mod[file]()
 	unload_mod[file]=nil
 	return "Module "..file.." unloaded"
+end
+function commands.upmod(query,file)
+	return commands.rmmod(query,file)..". "..commands.insmod(query,file)
 end
 function commands.calc(query)
 	local succ,ret=pcall(assert(loadstring("return "..query.params),"Syntax error"))
