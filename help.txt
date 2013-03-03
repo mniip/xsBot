@@ -1,10 +1,12 @@
 help	<function>	Get help for a function.
 %	<code>	Admin shell, loadstrings code.
-lua	<code>	A lua sandbox, feel free to do anything, it's safe.
-dns <host>	DNS resolve host into an IP.
+dns	<host>|<ip> [verbose]	DNS resolve host into an IP or vice versa.
 list		List available commands.
 ping		Check if bot is up.
 remind	<time> `<event>`	Remimd about an event in given amount of seconds.
 echo	<text>	Echoes text.
 reboot		Restarts the bot reloading all code and resetting environment.
-load	<module>	Dynamically reload a module.
+load	<file>	Dynamically load a file.
+insmod	<module>	Dynamically register module.
+rmmod	<module>	Dynamically unregister module.
+upmod	<module>	Update registered module.

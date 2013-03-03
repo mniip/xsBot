@@ -1,4 +1,4 @@
-commands={}
+commands=commands or {}
 function commands.load(query,file)
 	checktype({"string"},{file})
 	if not file:find"%.[^/]+$" then
@@ -120,4 +120,14 @@ end
 function commands.calc(query)
 	local succ,ret=pcall(assert(loadstring("return "..query.params),"Syntax error"))
 	return succ and ret or error"Syntax error"
+end
+function commands.isup(query,host,port)
+	port=port or 80
+	checktype({"string","number"},{host,port})
+	local sock=socket.connect(host,tonumber(port))
+	if sock then
+		sock:close()
+		return "Seems up"
+	end
+	return "Seems like down"
 end
