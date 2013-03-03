@@ -1,6 +1,6 @@
 local function check(network,sender,_,recipient,text)
 	if network==config.tty.channel[1] and recipient==config.tty.channel[2] then
-		local file=assert(io.popen("("..text..") 2>&1"))
+		local file=assert(io.popen("ulimit -t 10; ("..text..") 2>&1"))
 		local str=file:read"*a" or ""
 		file:close()
 		for line in str:gmatch"[^\n]+" do
