@@ -16,10 +16,10 @@ local function load()
 			return "Save doesnt exist"
 		end
 	end	
-	on.privmsg=fappend(on.privmsg,check)
+	on.privmsg=on.privmsg+check
 end
 local function unload()
 	commands.ptsave=nil
-	on.privmsg=fdivide(on.privmsg,check)
+	on.privmsg=on.privmsg/check
 end
 return load,unload

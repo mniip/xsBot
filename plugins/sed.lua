@@ -13,9 +13,9 @@ local function check(network,sender,_,recipient,text)
 	end
 end
 local function load()
-	on.privmsg=fappend(on.privmsg,check)
+	on.privmsg=on.privmsg+check
 end
 local function unload()
-	on.privmsg=fdivide(on.privmsg,check)
+	on.privmsg=on.privmsg/check
 end
 return load,unload
