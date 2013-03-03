@@ -117,6 +117,13 @@ end
 function commands.upmod(query,file)
 	return commands.rmmod(query,file)..". "..commands.insmod(query,file)
 end
+function commands.lsmods(query)
+	local t={}
+	for k in pairs(unload_mod) do
+		table.insert(t,tostring(k))
+	end
+	return table.concat(t,", ")
+end
 function commands.calc(query)
 	local succ,ret=pcall(assert(loadstring("return "..query.params),"Syntax error"))
 	return succ and ret or error"Syntax error"
