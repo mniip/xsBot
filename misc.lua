@@ -77,39 +77,12 @@ function checktype(types,values)
 	end
 end
 function nstime()
-	return tonumber(assert(io.popen"date +%s.%N"):read"*a")
+	local file=assert(io.popen"date +%s.%N")
+	local time=assert(tonumber(file:read"*a"))
+	file:close()
+	return time
 end
 do
-	local l=setmetatable({},{__mode='k'})
-	function fappend(f1,f2)
-		local f=function(...)f1(...)f2(...)end
-		l[f]={f1,f2}
-		return f
-	end
-	function fdivide(p,f)
-		local function fd(p,f)
-			if p==f then
-				return
-			end
-			local m=l[p]
-			if m then
-				local nf1=fd(m[1],f)
-				local nf2=fd(m[2],f)
-				if nf1 then
-					if nf2 then
-						return fappend(nf1,nf2)
-					else
-						return nf1
-					end
-				else
-					return nf2
-				end
-			else
-				return p
-			end
-		end
-		return fd(p,f)or function()end
-	end
 	local last_used={}
 	local function timedsend(network,channel,text)
 		last_used[network]=last_used[network]or nstime()-1

@@ -1,6 +1,6 @@
 #!/usr/bin/lua
 json=require"json"
-require"include"
+require"logic"
 servers={}
 unload_mod={}
 include"config.lua"
