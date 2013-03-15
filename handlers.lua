@@ -20,6 +20,11 @@ function on.ping(network,_,_,data)
 	send(network,"PONG",data)
 end
 function on.privmsg(network,sender,_,recipient,text)
+	for _,v in ipairs(config.servers[network].ignore) do
+		if sender:match(v) then
+			return
+		end
+	end
 	if lower(recipient)==lower(servers[network].nick) then
 		recipient=splitnick(sender)
 	end

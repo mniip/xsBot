@@ -36,13 +36,17 @@ function include(file)
 	setfenv(f,setmetatable({},{__index=function(_,k)local v=l[k] return v==nil and _G[k] or v end,__newindex=function(_,k,v)if l[k]==nil then _G[k]=v else l[k]=v end end}))
 	f()
 end
+function fempty()end
 local l=setmetatable({},{__mode='k'})
 local function fappend(f1,f2)
-	local f=function(...)f1(...)f2(...)end
+	local f=function(...)(f1 or fempty)(...);(f2 or fempty)(...)end
 	l[f]={f1,f2}
 	return f
 end
 local function fdivide(p,f)
+	if not f then
+		return p
+	end
 	local function fd(p,f)
 		if p==f then
 			return
@@ -64,7 +68,7 @@ local function fdivide(p,f)
 			return p
 		end
 	end
-	return fd(p,f)or function()end
+	return fd(p,f)or fempty
 end
 local function flen(f)
 	return l[f] and 2 or 1
@@ -75,7 +79,7 @@ local function fseparate(f,n)
 	if p then
 		return p[n]
 	else
-		return n==1 and f or function()end
+		return n==1 and f or fempty
 	end
 end
-debug.setmetatable(function()end,{__add=fappend,__div=fdivide,__len=flen,__pow=fseparate})
+debug.setmetatable(fempty,{__add=fappend,__div=fdivide,__len=flen,__pow=fseparate})
