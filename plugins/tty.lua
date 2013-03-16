@@ -14,7 +14,34 @@ local function read()
 	f:close()
 	if s then
 		for l in s:gmatch"[^\r\n]+" do
-			privmsg(config.tty.channel[1],config.tty.channel[2],(l:gsub("[^ -\255]",function(a)return a=="\t" and "        " or "^"..string.char(a:byte()+64)end)))
+			privmsg(config.tty.channel[1],config.tty.channel[2],(l:gsub("[^ -\255\27]",function(a)return a=="\t" and "        " or "^"..string.char(a:byte()+64)end):gsub("\27%[([^A-Za-z]-)([A-Za-z])",
+			function(r,b)
+				if b=="m" then
+					if r=="" then
+						return "\15"
+					end
+					local s=""
+					local lc,lb="1","1"
+					for a in r:gmatch"[^;]+" do
+						if a=="0" then
+							s=s.."\15"
+						elseif a=="1" then
+							s=s.."\2"
+						elseif a=="4" or a=="24" then
+							s=s.."\31"
+						elseif a:sub(-2,-2)=="3" then
+							lc=a:sub(2,2)
+							s=s.."\3"..lc..","..lb
+						elseif a:sub(-2,-2)=="4" then
+							lb=a:sub(2,2)
+							s=s.."\3"..lc..","..lb
+						end
+					end
+					return s
+				else
+					return ""
+				end
+			end)))
 		end
 	end
 end
