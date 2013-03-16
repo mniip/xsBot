@@ -86,8 +86,8 @@ do
 	local last_used={}
 	local function timedsend(network,channel,text)
 		last_used[network]=last_used[network]or nstime()-1
-		while last_used[network]>nstime()-0.33 do
-			socket.sleep(0.11)
+		while last_used[network]>nstime()-config.servers[network].throttle do
+			socket.sleep(config.servers[network].throttle/2)
 		end
 		send(network,"PRIVMSG",channel,text)
 		last_used[network]=nstime()
