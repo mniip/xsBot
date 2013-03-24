@@ -37,11 +37,39 @@ function include(file)
 	f()
 end
 function fempty()end
+function fproxy(...)return ... end
 local l=setmetatable({},{__mode='k'})
 local function fappend(f1,f2)
-	local f=function(...)(f1 or fempty)(...);(f2 or fempty)(...)end
+	local f=function(...)
+		(f1 or fempty)(...)
+		return (f2 or fempty)(...)
+	end
 	l[f]={f1,f2}
 	return f
+end
+local function fsubstitute(a,b)
+	if type(b)=="function" then
+		a,b=b,a
+	end
+	return function(...)
+		local t={...}
+		local k={}
+		for i,v in pairs(b) do
+			k[i]=t[v]
+		end
+		return a(unpack(k))
+	end
+end
+local function ftimes(a,b)
+	if type(b)=="function" then
+		a,b=b,a
+	end
+	return function(...)
+		for i=2,b do
+			a(...)
+		end
+		return a(...)
+	end
 end
 local function fdivide(p,f)
 	if not f then
@@ -82,4 +110,14 @@ local function fseparate(f,n)
 		return n==1 and f or fempty
 	end
 end
-debug.setmetatable(fempty,{__add=fappend,__div=fdivide,__len=flen,__pow=fseparate})
+local function fapply(f,a)
+	return function(...)
+		return f(a,...)
+	end
+end
+local function fpipe(f1,f2)
+	return function(...)
+		return f2(f1(...))
+	end
+end
+debug.setmetatable(fempty,{__add=fappend,__sub=fsubstitute,__mul=ftimes,__div=fdivide,__len=flen,__pow=fseparate,__index=fapply,__mod=fpipe})
