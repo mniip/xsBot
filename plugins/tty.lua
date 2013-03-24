@@ -1,15 +1,15 @@
 local function check(network,sender,_,recipient,text)
 	if network==config.tty.channel[1] and recipient==config.tty.channel[2] then
-		local file=io.open(".in","w")
+		local file=io.open(".tty.in","w")
 		file:write(((text.."\n"):gsub("%^(.)",function(a)return a=="\n" and "" or (a=="^" and a or string.char(a:byte()%32))end)))
 		file:close()
 	end
 end
 local function read()
-	local f=io.open".out"
+	local f=io.open".tty.out"
 	local s=f:read"*a"
 	f:close()
-	f=io.open(".out","w")
+	f=io.open(".tty.out","w")
 	f:write()
 	f:close()
 	if s then
@@ -46,13 +46,15 @@ local function read()
 	end
 end
 local function load()
-	os.execute"rm -f .in .out\nmkfifo .in\ntouch .out"
-	os.execute"(while [ -e .in ];do cat .in;done)|(while [ -e .in ];do ssh -t -t localhost;done)|(while [ -e .in ];do cat>>.out;done) &"
+	os.execute"rm -f .tty.in .tty.out;mkfifo .tty.in;touch .tty.out"
+	os.execute"bash -c '(while [ -e .tty.in ];do cat .tty.in &echo $!>.tty.in.pid;wait $!;done)|(while [ -e .tty.in ];do ssh -t -t localhost <&0 &echo $!>.tty.ssh.pid;wait $!;done)|(while [ -e .tty.in ];do if [ -s .tty.out ]; then sleep 0.1;else cat>>.tty.out;fi;done) &'"
 	table.insert(events,read)
 	on.privmsg=on.privmsg+check
 end
 local function unload()
-	os.execute"rm -f .in .out"
+	os.execute"rm -f .tty.in"
+	os.execute"kill -9 `cat .tty.in.pid` `cat .tty.ssh.pid`"
+	os.execute"rm -f .tty.out .tty.in.pid .tty.ssh.pid"
 	for i,v in ipairs(events) do
 		if v==read then
 			table.remove(events,i)
