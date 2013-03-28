@@ -20,22 +20,18 @@ end
 function connect(network)
 	local address,port=config.servers[network].server,config.servers[network].port
 	if not servers[network] then
-		if network=="default" then
-			log"connect: ignoring default server"
-		else
-			servers[network]={}
-			local c=socket.tcp()
-			c:connect(address,port)
-			c:settimeout(0)
-			servers[network].socket=c
-			servers[network].address=address
-			servers[network].port=port
-		end
+		servers[network]={}
+		local c=socket.tcp()
+		c:connect(address,port)
+		c:settimeout(0)
+		servers[network].socket=c
+		servers[network].address=address
+		servers[network].port=port
 	end
 end
-function disconnect(network)
+function disconnect(network,msg)
 	if servers[network] then
-		send(network,"QUIT","Disconnecting")
+		send(network,"QUIT",msg or "Disconnecting")
 		servers[network].socket:close()
 		servers[network]=nil
 	end
@@ -50,23 +46,27 @@ function loop(func)
 				table.remove(events,i)
 			end
 		end
-		for k,v in pairs(servers) do
-			local c=v.socket
-			local s,err=c:receive"*l"
-			if err then
-					if err~="timeout" then
-					disconnect(c)
-					connect(k)
+		for network in pairs(config.servers) do
+			if servers[network] then
+				local c=servers[network].socket
+				local s,err=c:receive"*l"
+				if err then
+						if err~="timeout" then
+						disconnect(network)
+						connect(network)
+					end
+				else
+					local succ,err=pcall(handle,network,s,func)
+					if not succ then
+						log(err)
+					end
+					if err==false then
+						loop_level=l-1
+						return
+					end
 				end
 			else
-				local succ,err=pcall(handle,k,s,func)
-				if not succ then
-					log(err)
-				end
-				if err==false then
-					loop_level=l-1
-					return
-				end
+				connect(network)
 			end
 		end
 		checkpipe()
@@ -92,7 +92,7 @@ function parse(s)
 end
 function handle(network,s,func)
 	local t=parse(s)
-	local _,r=pcall(func,network,s,unpack(t))
+	local _,r=pcall(func,network,s,t[0],unpack(t))
 	if r==false then
 		return false
 	elseif r==nil then

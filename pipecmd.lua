@@ -11,45 +11,38 @@ function pipecmd.stat(_,client)
 	if network then
 		send(network,"LUSERS")
 		local t=os.time()+1
-		while os.time()<=t do
-			local s=servers[network].socket:receive()
-			if s then
-				local succ,err=pcall(handle,network,s)
-				if not succ then
-					log(err)
-				end
-				local sender,num,recp,data=s:match"^:(%S+)%s+(%d+)%s+(%S+)%s+(.*)$"
-				if sender then
-					if num>"250" and num<"267" then
-						client:send(data.."\n")
-					end
+		loop(function(network,raw,sender,num,recp,...)
+			if os.time()>t then
+				return false
+			end
+			if sender then
+				if num>"250" and num<"267" then
+					client:send(table.concat({...}," ").."\n")
 					if num=="266" then
-						break
+						return false
+					else
+						return true
 					end
 				end
 			end
-		end
+		end)
 		client:send":\n"
 		send(network,"MAP")
 		t=os.time()+1
-		while os.time()<=t do
-			local s=servers[network].socket:receive()
-			if s then
-				local succ,err=pcall(handle,network,s)
-				if not succ then
-					log(err)
+		loop(function(network,raw,sender,num,recp,data)
+			if os.time()>t then
+				return false
+			end
+			if sender then
+				if num=="006" then
+					client:send(data.."\n")
+					return true
 				end
-				local sender,num,recp,data=s:match"^:(%S+)%s+(%d+)%s+(%S+)%s+(.*)$"
-				if sender then
-					if num=="006" then
-						client:send(data.."\n")
-					end
-					if num=="007" then
-						break
-					end
+				if num=="007" then
+					return false
 				end
 			end
-		end
+		end)
 	end
 end
 function pipecmd.git(_,client)
@@ -73,7 +66,7 @@ function pipecmd.git(_,client)
 	end
 	if files["init.lua"] then
 		log"init changed: rebooting"
-		commands.reboot()
+		commands.reboot({nick="git-reload",channel="",network="github"})
 	end
 	for k in pairs(files) do
 		if k:match"%.lua$" then

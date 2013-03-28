@@ -1,15 +1,31 @@
 local sed_data={}
 local function check(network,sender,_,recipient,text)
-	local search,replace
-	if sed_data[recipient] and sed_data[recipient][splitnick(sender)] then
-		search,replace=text:match"^s/([^/]*)/([^/]*)/$"
+	if sed_data[recipient] then
+		local search,replace=text:match"^s/([^/]*)/([^/]*)/$"
+		local user
 		if search then
-			privmsg(network,recipient,"<"..splitnick(sender).."> "..sed_data[recipient][splitnick(sender)]:gsub(search,replace))
+			user=splitnick(sender)
+		else
+			user,search,replace=text:match"^u/([^/]-)/([^/]*)/([^/]*)/$"
+		end
+		if user then
+			local data=sed_data[recipient][user:lower()]
+			if data then
+				local n=0
+				for s,e in data:gmatch(search) do
+					n=n+1
+				end
+				if n>20 then
+					privmsg(network,recipient,splitnick(sender)..": Your pattern matched too many times")
+				else
+					privmsg(network,recipient,"<"..user.."> "..data:gsub(search,replace))
+				end
+			end
 		end
 	end
 	if not search then
 		sed_data[recipient]=sed_data[recipient]or{}
-		sed_data[recipient][splitnick(sender)]=text
+		sed_data[recipient][splitnick(sender):lower()]=text
 	end
 end
 local function load()
