@@ -30,6 +30,9 @@ function commands.reboot(query)
 	for network in pairs(servers) do
 		disconnect(network,query.nick.." issued a reboot from "..query.channel.."@"..query.network)
 	end
+	if config.pipe then
+		stoppipeserv()
+	end
 	socket.sleep(2)
 	os.execute("kill "..p.." && exec "..s.." <&0")
 end

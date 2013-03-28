@@ -9,7 +9,8 @@ on["001"]=function(network)
 end
 
 function on.error(network)
-	server[network].socket:close()
+	servers[network].socket:close()
+	servers[network]=nil
 end
 function on.nick(network,sender,_,nick)
 	if lower(splitnick(sender))==lower(servers[network].nick) then
@@ -56,10 +57,10 @@ function on.privmsg(network,sender,_,recipient,text)
 					privmsg(network,recipient,("%s: [%s]: %s"):format(splitnick(sender),text,ret))
 				end
 			else
-				privmsg(network,recipient,"Permission denied")
+				privmsg(network,recipient,splitnick(sender)..": Permission denied")
 			end
 		else
-			privmsg(network,recipient,"No such command")
+			privmsg(network,recipient,splitnick(sender)..": No such command")
 		end
 	end
 end

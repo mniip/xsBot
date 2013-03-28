@@ -120,4 +120,11 @@ local function fpipe(f1,f2)
 		return f2(f1(...))
 	end
 end
-debug.setmetatable(fempty,{__add=fappend,__sub=fsubstitute,__mul=ftimes,__div=fdivide,__len=flen,__pow=fseparate,__index=fapply,__mod=fpipe})
+local function ftee(f1,f2)
+	return function(...)
+		local t={f1(...)}
+		f2(...)
+		return ...
+	end
+end
+debug.setmetatable(fempty,{__add=fappend,__sub=fsubstitute,__mul=ftimes,__div=fdivide,__len=flen,__pow=fseparate,__index=fapply,__mod=fpipe,__concat=ftee})

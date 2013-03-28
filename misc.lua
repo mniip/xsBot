@@ -18,7 +18,7 @@ function allowed(network,channel,host,command)
 			break
 		end
 	end
-	return level>=(config.level[lower(command)] or 1/0)
+	return (level or 0)>=(config.level[lower(command)] or 1/0)
 end
 function tolua(...)
 	local s=""
@@ -96,5 +96,19 @@ do
 		for i=1,#text,400 do
 			timedsend(network,channel,text:sub(i,i+399))
 		end
+	end
+end
+function setmode(network,channel,mode,...)
+	local args={...}
+	local last="-"
+	mode=mode:gsub("([+-])(.)",function(a,b)if #a>0 then last=a end return last..b end)
+	for substr in mode:gmatch"[+-]?.[+-]?.?[+-]?.?[+-]?.?" do
+		local subarg={}
+		for i=1,4 do
+			if #args>0 then
+				table.insert(subarg,table.remove(args,1))
+			end
+		end
+		send(network,"MODE",channel,substr,unpack(subarg))
 	end
 end
