@@ -7,7 +7,6 @@ on["001"]=function(network)
 		send(network,"JOIN",channel)
 	end
 end
-
 function on.error(network)
 	servers[network].socket:close()
 	servers[network]=nil
@@ -28,6 +27,21 @@ function on.privmsg(network,sender,_,recipient,text)
 	end
 	if lower(recipient)==lower(servers[network].nick) then
 		recipient=splitnick(sender)
+	end
+	if text:match"^\1.*\1$" then
+		local cmd,params=text:match"^\1(%S*)%s*(.*)\1$"
+		if cmd then
+			local reply
+			cmd=cmd:upper()
+			if cmd=="PING" then
+				reply="PING "..params
+			elseif cmd=="VERSION" then
+				reply="VERSION xsBot http://github.com/mniip/xsBot"
+			end
+			if reply then
+				send(network,"NOTICE",splitnick(sender),"\1"..reply.."\1")
+			end
+		end
 	end
 	if text:match("^"..config.char) then
 		local code=text:match("^"..config.char.."(.*)")
@@ -62,5 +76,10 @@ function on.privmsg(network,sender,_,recipient,text)
 		else
 			privmsg(network,recipient,splitnick(sender)..": No such command")
 		end
+	end
+end
+function on.kick(network,_,_,channel,recipient)
+	if lower(recipient)==lower(servers[network].nick) then
+		send(network,"JOIN",channel)
 	end
 end
