@@ -38,6 +38,35 @@ function include(file)
 end
 function fempty()end
 function fproxy(...)return ... end
+function fop(op)
+	if op=="+" then
+		return function(a,b)return a+b end
+	elseif op=="-" then
+		return function(a,b)return a-b end
+	elseif op=="*" then
+		return function(a,b)return a*b end
+	elseif op=="/" then
+		return function(a,b)return a/b end
+	elseif op=="%" then
+		return function(a,b)return a%b end
+	elseif op=="^" then
+		return function(a,b)return a^b end
+	elseif op==">" then
+		return function(a,b)return a>b end
+	elseif op=="<" then
+		return function(a,b)return a<b end
+	elseif op=="=" then
+		return function(a,b)return a==b end
+	elseif op=="|" then
+		return function(a,b)return a or b end
+	elseif op=="&" then
+		return function(a,b)return a and b end
+	elseif op=="!" then
+		return function(a)return not a end
+	elseif op=="_" then
+		return function(a)return -a end
+	end
+end
 local l=setmetatable({},{__mode='k'})
 local function fappend(f1,f2)
 	local f=function(...)
@@ -123,8 +152,8 @@ end
 local function ftee(f1,f2)
 	return function(...)
 		local t={f1(...)}
-		f2(...)
-		return ...
+		f2(unpack(t))
+		return unpack(t)
 	end
 end
 debug.setmetatable(fempty,{__add=fappend,__sub=fsubstitute,__mul=ftimes,__div=fdivide,__len=flen,__pow=fseparate,__index=fapply,__mod=fpipe,__concat=ftee})
