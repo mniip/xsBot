@@ -10,3 +10,11 @@ load	<file>	Dynamically load a file.
 insmod	<module>	Dynamically register module.
 rmmod	<module>	Dynamically unregister module.
 upmod	<module>	Update registered module.
+calc	<expression>	Calculate a math expression
+lsmods		List all loaded modules
+isup	<host> [port]	Check if remote host is up
+lua	<code>	Execute lua code in a sandbox
+base	<from> <to> <number>	Convert a number from one base to another. If base is larger than 36, digits are expressed as groups in parenthesis.
+false	<expression>	Evaluate an expression of FALSE programming language.
+me		How? I'm just a lua bot...
+geoip	<ip>|<host>|<nickname>|<nickname>@<network>	Get approximate location of an ip or a user. Notice that street-level address usually points to the ISP.

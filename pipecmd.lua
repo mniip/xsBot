@@ -11,17 +11,19 @@ function pipecmd.stat(_,client)
 	if network then
 		send(network,"LUSERS")
 		local t=os.time()+1
-		loop(function(network,raw,sender,num,recp,...)
-			if os.time()>t then
-				return false
-			end
-			if sender then
-				if num>"250" and num<"267" then
-					client:send(table.concat({...}," ").."\n")
-					if num=="266" then
-						return false
-					else
-						return true
+		loop(function(net,raw,sender,num,recp,...)
+			if net==network then
+				if os.time()>t then
+					return false
+				end
+				if sender then
+					if num>"250" and num<"267" then
+						client:send(table.concat({...}," ").."\n")
+						if num=="266" then
+							return false
+						else
+							return true
+						end
 					end
 				end
 			end
@@ -29,17 +31,19 @@ function pipecmd.stat(_,client)
 		client:send":\n"
 		send(network,"MAP")
 		t=os.time()+1
-		loop(function(network,raw,sender,num,recp,data)
-			if os.time()>t then
-				return false
-			end
-			if sender then
-				if num=="006" then
-					client:send(data.."\n")
-					return true
-				end
-				if num=="007" then
+		loop(function(net,raw,sender,num,recp,data)
+			if net==network then
+				if os.time()>t then
 					return false
+				end
+				if sender then
+					if num=="006" then
+						client:send(data.."\n")
+						return true
+					end
+					if num=="007" then
+						return false
+					end
 				end
 			end
 		end)
@@ -78,4 +82,20 @@ function pipecmd.git(_,client)
 		log"loop possibly changed: breaking"
 		_break()
 	end
+end
+function pipecmd.ison(_,client)
+	local net=client:receive"*l"
+	local nick=client:receive"*l"
+	send(net,"ISON",nick)
+	loop(function(network,raw,sender,num,_,nicks)
+		if net==network then
+			if num=="303" then
+				client:send(nicks.."\n")
+				return false
+			elseif num=="461" then
+				client:send"\n"
+				return false
+			end
+		end
+	end)
 end

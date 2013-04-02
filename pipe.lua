@@ -14,7 +14,6 @@ function startpipeserv(port)
 	end
 	c:listen(2)
 	c:settimeout(0)
-	c:setoption("reuseaddr",true)
 	pipe.socket=c
 end
 function stoppipeserv()
