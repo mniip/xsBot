@@ -41,27 +41,33 @@ function tolua(...)
 end
 function http(url)
 	local c=socket.tcp()
-	c:settimeout(1)
+	c:settimeout(3)
 	if not c:connect(url:match"^[^/]+",80) then
 		return
 	end
 	c:send("GET "..url:match"/.*$".." HTTP/1.1\nConnection: close\nHost: "..url:match"^[^/]+".."\n\n")
 	local d=c:receive"*a"
-	return d and d:match"\n\r?\n\r?(.*)$"
+	if not d then
+		return
+	end
+	local o=d:match"\r?\n\r?\n(.*)$"
+	if d:find"Transfer%-Encoding: chunked" then
+		local s=""
+		while assert(#s<100000,"LOL") do
+			local n
+			n,o=o:match"^\r?\n?\r?([a-fA-F0-9]+)\r?\n\r?(.*)$"
+			n=tonumber("0x"..n)
+			if n==0 then
+				break
+			end
+			s,o=s..o:sub(1,n),o:sub(n+1)
+		end
+		return s
+	end
+	return o
 end
 function _break()
 	loop_level=loop_level-1
-end
-function whois(network,nick)
-	local hostname
-	send(network,"WHO",nick)
-	loop(function(_,_,num,_,_,ident,host,_,nick)
-		if num=="352" then
-			hostname=nick.."!"..ident.."@"..host
-			return false
-		end
-	end)
-	return hostname
 end
 function checktype(types,values)
 	for i,v in ipairs(types) do
@@ -111,4 +117,19 @@ function setmode(network,channel,mode,...)
 		end
 		send(network,"MODE",channel,substr,unpack(subarg))
 	end
+end
+function whois(network,who)
+	local users={}
+	send(network,"WHO",who)
+	loop(function(net,raw,sender,num,_,_,ident,host,server,nick,_,rname)
+		if net==network then
+			if num=="352" then
+				table.insert(users,{ident=ident,host=host,server=server,nick=nick,rname=rname})
+				return true
+			elseif num=="315" then
+				return false
+			end
+		end
+	end)
+	return users
 end

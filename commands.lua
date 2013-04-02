@@ -157,8 +157,9 @@ end
 function commands.lua(query)
 	local code=query.params
 	local sandbox=[[
+dofile"logic.lua"
 local output=""
-local env={fempty=fempty,fproxy=fproxy,xpcall=xpcall,tostring=tostring,unpack=unpack,require=require,next=next,assert=assert,tonumber=tonumber,rawequal=rawequal,rawset=rawset,pcall=pcall,newproxy=newproxy,type=type,select=select,gcinfo=gcinfo,pairs=pairs,rawget=rawget,ipairs=ipairs,_VERSION=_VERSION,error=error}
+local env={fempty=fempty,fproxy=fproxy,fop=fop,xpcall=xpcall,tostring=tostring,unpack=unpack,next=next,assert=assert,tonumber=tonumber,rawequal=rawequal,rawset=rawset,pcall=pcall,newproxy=newproxy,type=type,select=select,gcinfo=gcinfo,pairs=pairs,rawget=rawget,ipairs=ipairs,_VERSION=_VERSION,error=error,setmetatable=setmetatable}
 env._G=env
 env.string={sub=string.sub,upper=string.upper,len=string.len,gfind=string.gfind,rep=string.rep,find=string.find,match=string.match,char=string.char,dump=string.dump,gmatch=string.gmatch,reverse=string.reverse,byte=string.byte,format=string.format,gsub=string.gsub,lower=string.lower}
 env.math={log=math.log,max=math.max,acos=math.acos,huge=math.huge,ldexp=math.ldexp,pi=math.pi,cos=math.cos,tanh=math.tanh,pow=math.pow,deg=math.deg,tan=math.tan,cosh=math.cosh,sinh=math.sinh,random=math.random,randomseed=math.randomseed,frexp=math.frexp,ceil=math.ceil,floor=math.floor,rad=math.rad,abs=math.abs,sqrt=math.sqrt,modf=math.modf,asin=math.asin,min=math.min,mod=math.mod,fmod=math.fmod,log10=math.log10,atan2=math.atan2,exp=math.exp,sin=math.sin,atan=math.atan}
@@ -177,13 +178,20 @@ env.print=function(...)
 	end
 end
 env.loadstring=function(...)
+	assert((...):sub(1)~="\27","Binary chunks not allowed")
 	local func,err=loadstring(...)
 	if func then
 		setfenv(func,env)
 	end
 	return func,err
 end
-dofile"logic.lua"
+env.getmetatable=function(a)
+	if type(a)=="table" then
+		return getmetatable(a)
+	else
+		return {}
+	end
+end
 local file=io.open".tmp"
 local code=file:read"*a":gsub("^=","return ")
 file:close()
@@ -351,6 +359,9 @@ commands["false"]=function(query)
 			elseif c=='"' then
 				l,n=s:match'"([^"]*)"()'
 				o(l)
+			elseif c=="'" then
+				n=3
+				a(s:byte(2))
 			elseif c:match"[a-z]" then
 				a(c:byte(1)-96)
 			elseif c:match"%S" then
@@ -385,6 +396,50 @@ function commands.md5(query)
 	os.remove(name)
 	return hash
 end
-function commands.takeover()
-	return "foo"..nil
+
+function commands.hostmask(query,nick)
+	checktype({"string"},{nick})
+	assert(nick:match"^[A-Za-z{|}~`^[%]\\_-]","Looks like an invalid nickname")
+	local info=whois(query.network,nick)[1]
+	if info then
+		return info.nick.."!"..info.ident.."@"..info.host
+	else
+		error(nick.." not found")
+	end
+end
+
+function commands.geoip(query,ip)
+	if ip:match"^[^.:]*$" then
+		local nick,net=ip:match"([^@]+)@(.*)"
+		local info
+		if nick then
+			info=whois(net,nick)[1]
+		else
+			info=whois(query.network,ip)[1]
+		end
+		if info then
+			ip=info.host
+		else
+			error(ip.." not found")
+		end
+	end
+	ip=socket.dns.toip(ip)or ip
+	local file=io.popen("whois '"..ip:gsub("['\\]","\\%1").."' 2>&1")
+	local data=file:read"*a"
+	file:close()
+	local net=select(3,data:find"inet6?num:%s*([^\n]*)")or select(3,data:find"NetRange:%s*([^\n]*)")
+	local count=select(3,data:find"[Cc]ountry:%s*([^\n]*)")
+	local org=select(3,data:find"org%-name:%S*([^\n]*)")or select(3,data:find"OrgName:%S*([^\n]*)")
+	local data=select(3,data:find"\n([Pp]erson:.*)$") or data
+	local addr=""
+	for a in data:gmatch"\n[Aa]ddress:%S*([^\n]*)" do
+		if not addr:find(a,1,true) then
+			addr=addr..a..", "
+		end
+	end
+	if net then
+		return net.." : "..(count and"Country: "..count.."; "or"")..(addr and"Address: "..addr..";"or"")..(org and"The provider is "..org..";"or"")
+	else
+		error"Data not found"
+	end
 end
